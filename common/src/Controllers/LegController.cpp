@@ -169,10 +169,14 @@ void LegController<T>::updateCommand(SpiCommand* spiCommand) {
     spiCommand->qd_des_knee[leg] = commands[leg].qdDes(2);
 
     // estimate torque
-    datas[leg].tauEstimate =
-        legTorque +
-        commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
-        commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
+    datas[leg].tauFeedforward = legTorque;
+    datas[leg].tauFeedback = commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+      commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
+    datas[leg].tauEstimate = legTorque + datas[leg].tauFeedback;
+    //datas[leg].tauEstimate =
+    //    legTorque +
+    //    commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+    //    commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
 
     spiCommand->flags[leg] = _legsEnabled ? 1 : 0;
   }
@@ -219,6 +223,23 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
 
   }
 }
+
+
+/*  added for contact estimation */
+template<typename T>
+void LegController<T>::setLcm(contact_data_lcmt* lcmData) {
+  for (leg = 0; leg < 4; leg++) {
+    for (int axis = 0; axis < 3; axis++) {
+      int idx = leg*3 + axis;
+      lcmData->tau_feed_forward[idx] = datas[leg].tauFeedforward[axis];
+      lcmData->tau_feed_back[idx] = datas[leg].tauFeedback[axis];
+    }    
+  }
+  
+}
+
+
+
 
 /*!
  * Set LCM debug data from leg commands and data
