@@ -228,7 +228,7 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
 /*  added for contact estimation */
 template<typename T>
 void LegController<T>::setLcm(contact_data_lcmt* lcmData) {
-  for (leg = 0; leg < 4; leg++) {
+  for (int leg = 0; leg < 4; leg++) {
     for (int axis = 0; axis < 3; axis++) {
       int idx = leg*3 + axis;
       lcmData->tau_feed_forward[idx] = datas[leg].tauFeedforward[axis];
