@@ -1,4 +1,18 @@
-## Cheetah-Software
+## Cheetah-Software Jetson
+This repository is the cheetah software that can be built on JEtson Xavier (arm64).
+### Changes we've made
+* In `CMakeList.txt` line 19, change "Do not build simulator" to ON to avoid building Qt.
+```
+option(NO_SIM "Do not build simulator" ON)
+```
+
+* For running on arm64 system, change `#include <immintrin.h>` to `#include "arm_neon.h"` in `third-party/JCQP/CholeskyDenseSolver.cpp` and `third-party/JCQP/CholeskySparseSolver.cpp`.
+
+* Other changes are for publishing tau feedback to LCM for contact detection.
+
+
+
+## Original Readme - Cheetah-Software
 This repository contains the Robot and Simulation software project.  For a getting started guide, see the documentation folder.
 
 The common folder contains the common library with dynamics and utilities
