@@ -7,7 +7,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 set(CMAKE_COLOR_MAKEFILE   ON)
-#execute_process(COMMAND ../scripts/make_types.sh)
+execute_process(COMMAND ../scripts/make_types.sh)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 set(BUILD_TYPE_RELEASE TRUE)
 
-option(NO_SIM "Do not build simulator" OFF)
+option(NO_SIM "Do not build simulator" ON)
 
 if(MINI_CHEETAH_BUILD)
   SET (THIS_COM "../" )
@@ -46,7 +46,7 @@ else(MINI_CHEETAH_BUILD)
     include_directories("/usr/local/include/")   # lcm includes
   endif()
 
-  set(CMAKE_C_FLAGS "-O3  -ggdb  -march=native -std=gnu99 -I.")
+  set(CMAKE_C_FLAGS "-O3  -ggdb -march=native -std=gnu99 -I.")
   message("**** Mini-Cheetah build disabled ****")
 endif(MINI_CHEETAH_BUILD)
 

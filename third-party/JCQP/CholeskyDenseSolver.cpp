@@ -8,7 +8,10 @@
 #include "Timer.h"
 #include <cassert>
 #include <iostream>
-#include <immintrin.h>
+//#include <immintrin.h>
+//#include "vectorclass.h"
+
+#include "arm_neon.h"
 
 static constexpr s64 UNROLL_MATVEC = 8; //! Loop unroll for all inner loops, AVX2 only
 

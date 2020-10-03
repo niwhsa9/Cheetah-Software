@@ -9,8 +9,8 @@
 #include "Timer.h"
 #include "amd.h"
 #include <iostream>
-#include <immintrin.h>
-
+//#include <immintrin.h>
+#include <arm_neon.h>
 
 template<typename T>
 void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat, bool b_print)
