@@ -1,5 +1,5 @@
 ## Cheetah-Software Jetson
-This repository is the cheetah software that can be built on JEtson Xavier (arm64).
+This repository is the cheetah software that can be built on Jetson Xavier (arm64).
 ### Changes we've made
 * In `CMakeList.txt` line 19, change "Do not build simulator" to ON to avoid building Qt.
 ```
