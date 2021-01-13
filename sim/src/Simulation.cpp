@@ -41,6 +41,11 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
     }
   }
 
+  if(_lcm){
+    _lcm->subscribe("inekf_visualization",&Simulation::inEkfLcmCallback,this);
+    _lcmThread = std::thread(&Simulation::lcmThread, this);
+  }
+  
   // init quadruped info
   printf("[Simulation] Build quadruped...\n");
   _robot = robot;
@@ -87,6 +92,8 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   _tau = zero12;
   _robotControllerState.q = zero12;
   _robotControllerState.qd = zero12;
+  _inEkfState.q = zero12;
+  _inEkfState.qd = zero12;
   FBModelState<double> x0;
   x0.bodyOrientation = rotationMatrixToQuaternion(
       ori::coordinateRotation(CoordinateAxis::Z, 0.));
@@ -216,8 +223,10 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   // init IMU simulator
   printf("[Simulation] Setup IMU simulator...\n");
   _imuSimulator = new ImuSimulator<double>(_simParams);
-
   _simParams.unlockMutex();
+  
+  
+
   printf("[Simulation] Ready!\n");
 }
 
@@ -861,8 +870,13 @@ void Simulation::updateGraphics() {
         _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
   _robotDataSimulator->setState(_robotControllerState);
   _robotDataSimulator->forwardKinematics();  // calc all body positions
+  
+  
 
-  _inEKFSimulator->setState(_robotControllerState);
+  for (int i = 0; i < 12; i++)
+    _inEkfState.q[i] =
+        _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
+  _inEKFSimulator->setState(_inEkfState);
   _inEKFSimulator->forwardKinematics();
 
   _window->_drawList.updateRobotFromModel(*_simulator, _simRobotID, true);
@@ -875,3 +889,20 @@ void Simulation::updateGraphics() {
 }
 
 
+void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
+                                  const std::string& channel_name,
+                                  const inekf_visualization_lcmt* msg){
+  
+  (void) rbuf;
+  (void) channel_name;
+
+  std::cout<<"inekf estimated body pose is: ";
+  for(int i=0; i<3; ++i){
+    _inEkfState.bodyPosition[i] = double(msg->x[i]);
+    std::cout<<_inEkfState.bodyPosition[i]<<", ";
+  }
+  std::cout<<std::endl;
+  for(int i=0; i<4; ++i){
+    _inEkfState.bodyOrientation[i] = double(msg->quat[i]);
+  }
+}

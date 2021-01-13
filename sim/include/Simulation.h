@@ -21,6 +21,7 @@
 #include "Utilities/Timer.h"
 
 #include <mutex>
+#include <thread>
 #include <queue>
 #include <utility>
 #include <vector>
@@ -28,6 +29,7 @@
 #include <lcm/lcm-cpp.hpp>
 #include "simulator_lcmt.hpp"
 #include "microstrain_lcmt.hpp"
+#include "inekf_visualization_lcmt.hpp"
 
 #define SIM_LCM_NAME "simulator_state"
 
@@ -120,6 +122,11 @@ class Simulation {
   void loadTerrainFile(const std::string& terrainFileName,
                        bool addGraphics = true);
 
+  void inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
+                        const std::string& channel_name,
+                        const inekf_visualization_lcmt* msg);
+  void lcmThread() { while (true) { _lcm->handle(); } };
+
  private:
   void handleControlError();
   Graphics3D* _window = nullptr;
@@ -134,6 +141,7 @@ class Simulation {
   size_t _simRobotID, _controllerRobotID, _inEKFRobotID;
   Quadruped<double> _quadruped;
   FBModelState<double> _robotControllerState;
+  FBModelState<double> _inEkfState;
   FloatingBaseModel<double> _model;
   FloatingBaseModel<double> _robotDataModel;
   FloatingBaseModel<double> _inEKFModel;
@@ -148,6 +156,7 @@ class Simulation {
   TI_BoardControl _tiBoards[4];
   RobotType _robot;
   lcm::LCM* _lcm = nullptr;
+  std::thread _lcmThread;
 
   std::function<void(void)> _uiUpdate;
   std::function<void(std::string)> _errorCallback;
