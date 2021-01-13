@@ -27,6 +27,7 @@
 
 #include <lcm/lcm-cpp.hpp>
 #include "simulator_lcmt.hpp"
+#include "microstrain_lcmt.hpp"
 
 #define SIM_LCM_NAME "simulator_state"
 
@@ -89,6 +90,7 @@ class Simulation {
   ~Simulation() {
     delete _simulator;
     delete _robotDataSimulator;
+    delete _inEKFSimulator;
     delete _imuSimulator;
     delete _lcm;
   }
@@ -114,6 +116,7 @@ class Simulation {
 
   void firstRun();
   void buildLcmMessage();
+  void buildImuLcmMessage();
   void loadTerrainFile(const std::string& terrainFileName,
                        bool addGraphics = true);
 
@@ -128,14 +131,16 @@ class Simulation {
   ControlParameters& _userParams;
   RobotControlParameters _robotParams;
 
-  size_t _simRobotID, _controllerRobotID;
+  size_t _simRobotID, _controllerRobotID, _inEKFRobotID;
   Quadruped<double> _quadruped;
   FBModelState<double> _robotControllerState;
   FloatingBaseModel<double> _model;
   FloatingBaseModel<double> _robotDataModel;
+  FloatingBaseModel<double> _inEKFModel;
   DVec<double> _tau;
   DynamicsSimulator<double>* _simulator = nullptr;
   DynamicsSimulator<double>* _robotDataSimulator = nullptr;
+  DynamicsSimulator<double>* _inEKFSimulator = nullptr;
   std::vector<ActuatorModel<double>> _actuatorModels;
   SpiCommand _spiCommand;
   SpiData _spiData;
@@ -155,6 +160,7 @@ class Simulation {
   double _timeOfNextHighLevelControl = 0.;
   s64 _highLevelIterations = 0;
   simulator_lcmt _simLCM;
+  microstrain_lcmt _imuLCM;
 };
 
 #endif  // PROJECT_SIMULATION_H

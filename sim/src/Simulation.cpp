@@ -53,23 +53,30 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   // init graphics
   if (_window) {
     printf("[Simulation] Setup Cheetah graphics...\n");
-    Vec4<float> truthColor, seColor;
+    Vec4<float> truthColor, seColor, inEKFColor;
     truthColor << 0.2, 0.4, 0.2, 0.6;
     seColor << .75,.75,.75, 1.0;
+    inEKFColor <<  1.0, 0.8, 0.02, 0.6;
     _simRobotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah(truthColor, true, true)
                                                     : window->setupCheetah3(truthColor, true, true);
     _controllerRobotID = _robot == RobotType::MINI_CHEETAH
                              ? window->setupMiniCheetah(seColor, false, false)
                              : window->setupCheetah3(seColor, false, false);
+    
+    _inEKFRobotID = _robot == RobotType::MINI_CHEETAH
+                             ? window->setupMiniCheetah(inEKFColor, false, false)
+                             : window->setupCheetah3(inEKFColor, false, false);
   }
 
   // init rigid body dynamics
   printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
   _robotDataModel = _quadruped.buildModel();
+  _inEKFModel = _quadruped.buildModel();
   _simulator =
       new DynamicsSimulator<double>(_model, (bool)_simParams.use_spring_damper);
   _robotDataSimulator = new DynamicsSimulator<double>(_robotDataModel, false);
+  _inEKFSimulator = new DynamicsSimulator<double>(_inEKFModel, false);
 
   DVec<double> zero12(12);
   for (u32 i = 0; i < 12; i++) {
@@ -152,6 +159,7 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
 
   setRobotState(x0);
   _robotDataSimulator->setState(x0);
+  _inEKFSimulator->setState(x0);
 
   printf("[Simulation] Setup low-level control...\n");
   // init spine:
@@ -430,6 +438,11 @@ void Simulation::highLevelControl() {
                                    _simulator->getDState(),
                                    &_sharedMemory().simToRobot.vectorNav);
 
+  // publish IMU data to LCM
+  if(_lcm){
+    buildImuLcmMessage();
+    _lcm->publish("microstrain",&_imuLCM);
+  }
 
   // send leg data to robot
   if (_robot == RobotType::MINI_CHEETAH) {
@@ -524,6 +537,22 @@ void Simulation::buildLcmMessage() {
       _simLCM.f_foot[leg][joint] = _simulator->getContactForce(gcID)[joint];
     }
   }
+}
+
+/**
+ * Build imu lcm message 
+ */
+void Simulation::buildImuLcmMessage(){
+  
+  for(size_t i=0; i<3; ++i){
+    _imuLCM.omega[i] = _sharedMemory().simToRobot.vectorNav.gyro[i]; 
+    _imuLCM.acc[i] = _sharedMemory().simToRobot.vectorNav.accelerometer[i];
+  }
+
+  for(size_t i=0; i<4; ++i){
+    _imuLCM.quat[i] = _sharedMemory().simToRobot.vectorNav.quat[i];
+  }
+
 }
 
 /*!
@@ -832,9 +861,15 @@ void Simulation::updateGraphics() {
         _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
   _robotDataSimulator->setState(_robotControllerState);
   _robotDataSimulator->forwardKinematics();  // calc all body positions
+
+  _inEKFSimulator->setState(_robotControllerState);
+  _inEKFSimulator->forwardKinematics();
+
   _window->_drawList.updateRobotFromModel(*_simulator, _simRobotID, true);
   _window->_drawList.updateRobotFromModel(*_robotDataSimulator,
                                           _controllerRobotID, false);
+  _window->_drawList.updateRobotFromModel(*_inEKFSimulator,
+                                          _inEKFRobotID, false);                                       
   _window->_drawList.updateAdditionalInfo(*_simulator);
   _window->update();
 }
