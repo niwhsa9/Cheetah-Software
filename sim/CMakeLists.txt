@@ -3,6 +3,10 @@ project(sim)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# manually set path to Qt
+set(Qt5Core_DIR /media/curly_ssd_justin/ProgramFiles/Qt/5.15.0/gcc_64/lib/cmake/Qt5Core)
+set(Qt5Widgets_DIR /media/curly_ssd_justin/ProgramFiles/Qt/5.15.0/gcc_64/lib/cmake/Qt5Widgets)
+set(Qt5Gamepad_DIR /media/curly_ssd_justin/ProgramFiles/Qt/5.15.0/gcc_64/lib/cmake/Qt5Gamepad)
 
 execute_process(COMMAND ${CMAKE_SOURCE_DIR}/scripts/find_qt_path.sh OUTPUT_VARIABLE CMAKE_PREFIX_PATH_1)
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH_1})
