@@ -157,6 +157,8 @@ class Simulation {
   RobotType _robot;
   lcm::LCM* _lcm = nullptr;
   std::thread _lcmThread;
+  bool _receivedInEkf;
+  Eigen::Vector3d inEKF_frame_shift;
 
   std::function<void(void)> _uiUpdate;
   std::function<void(std::string)> _errorCallback;

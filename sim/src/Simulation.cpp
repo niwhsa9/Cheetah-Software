@@ -17,7 +17,7 @@
  */
 Simulation::Simulation(RobotType robot, Graphics3D* window,
                        SimulatorControlParameters& params, ControlParameters& userParams, std::function<void(void)> uiUpdate)
-    : _simParams(params), _userParams(userParams), _tau(12) {
+    : _simParams(params), _userParams(userParams), _tau(12), _receivedInEkf(false) {
   _uiUpdate = uiUpdate;
   // init parameters
   printf("[Simulation] Load parameters...\n");
@@ -876,8 +876,14 @@ void Simulation::updateGraphics() {
   for (int i = 0; i < 12; i++)
     _inEkfState.q[i] =
         _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
-
-  _inEKFSimulator->setState(_inEkfState);
+  if(_receivedInEkf){
+    _inEKFSimulator->setState(_inEkfState);
+  }
+  else
+  {
+    _inEKFSimulator->setState(_robotControllerState);
+  }
+  
   _inEKFSimulator->forwardKinematics();
 
   _window->_drawList.updateRobotFromModel(*_simulator, _simRobotID, true);
@@ -897,19 +903,31 @@ void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
   (void) rbuf;
   (void) channel_name;
 
+  if(!_receivedInEkf){
+    for(int i=0; i<3; ++i){
+      inEKF_frame_shift[i] += _robotControllerState.bodyPosition[i];
+    }
+  }
+
   // std::cout<<"inekf estimated body pose is: ";
-  // for(int i=0; i<3; ++i){
-  //   _inEkfState.bodyPosition[i] = double(msg->x[i]);
-  //   // std::cout<<_inEkfState.bodyPosition[i]<<", ";
-  // }
+  for(int i=0; i<3; ++i){
+    _inEkfState.bodyPosition[i] = double(msg->x[i]) + inEKF_frame_shift[i];
+    // std::cout<<_inEkfState.bodyPosition[i]<<", ";
+  }
   // std::cout<<std::endl;
   // shift origin to standing pose for inekf
-  
-  _inEkfState.bodyPosition[0] = double(msg->x[0]) + 0.036; 
-  _inEkfState.bodyPosition[1] = double(msg->x[1]) + 0.002;
-  _inEkfState.bodyPosition[2] = double(msg->x[2]) + 0.2756;
+ 
+  // _inEkfState.bodyPosition[0] = double(msg->x[0]) + 0.036; 
+  // _inEkfState.bodyPosition[1] = double(msg->x[1]) + 0.002;
+  // _inEkfState.bodyPosition[2] = double(msg->x[2]) + 0.2756;
   
   for(int i=0; i<4; ++i){
     _inEkfState.bodyOrientation[i] = double(msg->quat[i]);
   }
+
+  
+
+
+
+  _receivedInEkf = true;
 }
