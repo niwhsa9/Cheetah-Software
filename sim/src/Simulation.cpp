@@ -876,6 +876,7 @@ void Simulation::updateGraphics() {
   for (int i = 0; i < 12; i++)
     _inEkfState.q[i] =
         _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
+
   _inEKFSimulator->setState(_inEkfState);
   _inEKFSimulator->forwardKinematics();
 
@@ -896,12 +897,18 @@ void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
   (void) rbuf;
   (void) channel_name;
 
-  std::cout<<"inekf estimated body pose is: ";
-  for(int i=0; i<3; ++i){
-    _inEkfState.bodyPosition[i] = double(msg->x[i]);
-    std::cout<<_inEkfState.bodyPosition[i]<<", ";
-  }
-  std::cout<<std::endl;
+  // std::cout<<"inekf estimated body pose is: ";
+  // for(int i=0; i<3; ++i){
+  //   _inEkfState.bodyPosition[i] = double(msg->x[i]);
+  //   // std::cout<<_inEkfState.bodyPosition[i]<<", ";
+  // }
+  // std::cout<<std::endl;
+  // shift origin to standing pose for inekf
+  
+  _inEkfState.bodyPosition[0] = double(msg->x[0]) + 0.036; 
+  _inEkfState.bodyPosition[1] = double(msg->x[1]) + 0.002;
+  _inEkfState.bodyPosition[2] = double(msg->x[2]) + 0.2756;
+  
   for(int i=0; i<4; ++i){
     _inEkfState.bodyOrientation[i] = double(msg->quat[i]);
   }
