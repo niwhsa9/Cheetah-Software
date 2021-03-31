@@ -14,7 +14,7 @@
 #include "cppTypes.h"
 #include "leg_control_command_lcmt.hpp"
 #include "leg_control_data_lcmt.hpp"
-#include "contact_data_lcmt.hpp"
+#include "control_torque_lcmt.hpp"
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/SpineBoard.h"
 #include "SimUtilities/ti_boardcontrol.h"
@@ -74,7 +74,7 @@ class LegController {
   void setEnabled(bool enabled) { _legsEnabled = enabled; };
   void setLcm(leg_control_data_lcmt* data, leg_control_command_lcmt* command);
   /*  added for contact estimation */
-  void setLcm(contact_data_lcmt* data);
+  void setLcm(control_torque_lcmt* data);
   
   /*!
    * Set the maximum torque.  This only works on cheetah 3!

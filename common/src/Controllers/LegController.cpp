@@ -227,7 +227,7 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
 
 /*  added for contact estimation */
 template<typename T>
-void LegController<T>::setLcm(contact_data_lcmt* lcmData) {
+void LegController<T>::setLcm(control_torque_lcmt* lcmData) {
   for (int leg = 0; leg < 4; leg++) {
     for (int axis = 0; axis < 3; axis++) {
       int idx = leg*3 + axis;

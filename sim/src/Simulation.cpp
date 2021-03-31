@@ -905,7 +905,7 @@ void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
 
   if(!_receivedInEkf){
     for(int i=0; i<3; ++i){
-      inEKF_frame_shift[i] += _robotControllerState.bodyPosition[i];
+      inEKF_frame_shift[i] = _robotControllerState.bodyPosition[i];
     }
   }
 
