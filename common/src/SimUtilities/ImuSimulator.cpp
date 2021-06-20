@@ -31,6 +31,24 @@ void ImuSimulator<T>::computeAcceleration(
              .template cast<float>();
 }
 
+template <typename T>
+void ImuSimulator<T>::computeAccelerationNoNoise(
+    const FBModelState<T> &robotState,
+    const FBModelStateDerivative<T> &robotStateD, Vec3<float> &acc,
+    std::uniform_real_distribution<float> &dist, const RotMat<float> &R_body) {
+  // accelerometer noise
+  acc << 0, 0, 0;
+  //fillEigenWithRandom(acc, _mt, dist);
+  (void) dist;
+  // gravity (should be positive when robot is upright)
+  acc += (R_body * Vec3<float>(0, 0, 9.81));
+
+  // acceleration
+  acc += spatial::spatialToLinearAcceleration(robotStateD.dBodyVelocity,
+                                              robotState.bodyVelocity)
+             .template cast<float>();
+}
+
 /*!
  * Compute acceleration, gyro, and orientation readings from VectorNav
  */
@@ -59,6 +77,43 @@ void ImuSimulator<T>::updateVectornav(
     fillEigenWithRandom(omegaNoise, _mt, _vectornavQuatDistribution);
     Quat<float> floatQuat = robotState.bodyOrientation.template cast<float>();
     ori_quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
+
+  } else {
+    ori_quat = robotState.bodyOrientation.template cast<float>();
+  }
+  data->quat[3] = ori_quat[0];
+  data->quat[0] = ori_quat[1];
+  data->quat[1] = ori_quat[2];
+  data->quat[2] = ori_quat[3];
+}
+
+template <typename T>
+void ImuSimulator<T>::updateVectornavNoNoise(
+    const FBModelState<T> &robotState,
+    const FBModelStateDerivative<T> &robotStateD, VectorNavData *data) {
+  // body orientation
+  RotMat<float> R_body = quaternionToRotationMatrix(
+      robotState.bodyOrientation.template cast<float>());
+
+  Quat<float> ori_quat;
+
+  // acceleration
+  computeAccelerationNoNoise(robotState, robotStateD, data->accelerometer,
+                      _vectornavAccelerometerDistribution, R_body);
+
+  // gyro
+  data->gyro << 0, 0, 0;
+  //fillEigenWithRandom(data->gyro, _mt, _vectornavGyroDistribution);
+  data->gyro +=
+      robotState.bodyVelocity.template head<3>().template cast<float>();
+
+  // quaternion
+  if (_vectorNavOrientationNoise) {
+    Vec3<float> omegaNoise;
+    //fillEigenWithRandom(omegaNoise, _mt, _vectornavQuatDistribution);
+
+    Quat<float> floatQuat = robotState.bodyOrientation.template cast<float>();
+    ori_quat = floatQuat; //integrateQuat(floatQuat, omegaNoise, 1.0f);
 
   } else {
     ori_quat = robotState.bodyOrientation.template cast<float>();

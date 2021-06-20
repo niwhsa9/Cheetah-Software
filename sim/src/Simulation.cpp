@@ -443,7 +443,7 @@ void Simulation::highLevelControl() {
                                     _simulator->getDState(),
                                     _sharedMemory().simToRobot.cheaterState);
 
-  _imuSimulator->updateVectornav(_simulator->getState(),
+  _imuSimulator->updateVectornavNoNoise(_simulator->getState(),
                                    _simulator->getDState(),
                                    &_sharedMemory().simToRobot.vectorNav);
 
@@ -911,7 +911,7 @@ void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
 
   // std::cout<<"inekf estimated body pose is: ";
   for(int i=0; i<3; ++i){
-    _inEkfState.bodyPosition[i] = double(msg->x[i]) + inEKF_frame_shift[i];
+    _inEkfState.bodyPosition[i] =  double(msg->x[i]) + inEKF_frame_shift[i];
     // std::cout<<_inEkfState.bodyPosition[i]<<", ";
   }
   // std::cout<<std::endl;
@@ -920,8 +920,9 @@ void Simulation::inEkfLcmCallback(const lcm::ReceiveBuffer* rbuf,
   // _inEkfState.bodyPosition[0] = double(msg->x[0]) + 0.036; 
   // _inEkfState.bodyPosition[1] = double(msg->x[1]) + 0.002;
   // _inEkfState.bodyPosition[2] = double(msg->x[2]) + 0.2756;
-  
+  (void) msg;
   for(int i=0; i<4; ++i){
+    
     _inEkfState.bodyOrientation[i] = double(msg->quat[i]);
   }
 

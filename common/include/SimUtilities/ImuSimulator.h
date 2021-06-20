@@ -33,12 +33,22 @@ class ImuSimulator {
     }
   }
 
+  void updateVectornavNoNoise(const FBModelState<T>& robotState,
+                       const FBModelStateDerivative<T>& robotStateD,
+                       VectorNavData* data);
+
   void updateVectornav(const FBModelState<T>& robotState,
                        const FBModelStateDerivative<T>& robotStateD,
                        VectorNavData* data);
 
 
   void computeAcceleration(const FBModelState<T>& robotState,
+                           const FBModelStateDerivative<T>& robotStateD,
+                           Vec3<float>& acc,
+                           std::uniform_real_distribution<float>& dist,
+                           const RotMat<float>& R_body);
+
+  void computeAccelerationNoNoise(const FBModelState<T>& robotState,
                            const FBModelStateDerivative<T>& robotStateD,
                            Vec3<float>& acc,
                            std::uniform_real_distribution<float>& dist,
