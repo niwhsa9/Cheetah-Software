@@ -561,7 +561,9 @@ void Simulation::buildImuLcmMessage(){
   for(size_t i=0; i<4; ++i){
     _imuLCM.quat[i] = _sharedMemory().simToRobot.vectorNav.quat[i];
   }
-
+  std::cout <<  _imuLCM.omega[0] << ", " <<  _imuLCM.omega[1] << ", " <<  _imuLCM.omega[2] << std::endl;
+  std::cout <<  _imuLCM.acc[0] << ", " <<  _imuLCM.acc[1] << ", " <<  _imuLCM.acc[2] << std::endl;
+  std::cout <<  _imuLCM.quat[0] << ", " <<  _imuLCM.quat[1] << ", " <<  _imuLCM.quat[2] << ", " <<  _imuLCM.quat[3] << std::endl; 
 }
 
 /*!
